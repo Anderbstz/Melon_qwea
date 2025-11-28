@@ -115,6 +115,28 @@ function celebrate() {
     }
 }
 
+// Función para mover el botón "No"
+function moveNoButton() {
+    if (noCount < maxNoClicks) {
+        const maxX = window.innerWidth - btnNo.offsetWidth - 20;
+        const maxY = window.innerHeight - btnNo.offsetHeight - 20;
+        const x = Math.max(10, Math.random() * maxX);
+        const y = Math.max(10, Math.random() * maxY);
+        
+        btnNo.style.position = 'absolute';
+        btnNo.style.left = `${x}px`;
+        btnNo.style.top = `${y}px`;
+        
+        // Asegurarse de que el botón no salga de la pantalla
+        if (x + btnNo.offsetWidth > window.innerWidth) {
+            btnNo.style.left = `${window.innerWidth - btnNo.offsetWidth - 10}px`;
+        }
+        if (y + btnNo.offsetHeight > window.innerHeight) {
+            btnNo.style.top = `${window.innerHeight - btnNo.offsetHeight - 10}px`;
+        }
+    }
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     initCarousel();
@@ -122,14 +144,40 @@ document.addEventListener('DOMContentLoaded', () => {
     btnYes.addEventListener('click', handleYesClick);
     btnNo.addEventListener('click', handleNoClick);
     
-    // Hacer que el botón "No" sea difícil de hacer clic
-    btnNo.addEventListener('mouseover', () => {
-        if (noCount < maxNoClicks) {
-            const x = Math.random() * (window.innerWidth - 200);
-            const y = Math.random() * (window.innerHeight - 100);
-            btnNo.style.position = 'absolute';
-            btnNo.style.left = `${x}px`;
-            btnNo.style.top = `${y}px`;
+    // Para dispositivos táctiles
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    // Mover el botón al tocar (para móviles)
+    btnNo.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        moveNoButton();
+    }, { passive: false });
+    
+    // Mover el botón al arrastrar (para móviles)
+    btnNo.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+        
+        // Solo mover si el dedo se ha movido una distancia mínima
+        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+            moveNoButton();
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+    }, { passive: false });
+    
+    // Para desktop (mouse)
+    btnNo.addEventListener('mouseover', moveNoButton);
+    
+    // Asegurar que el botón se mantenga dentro de la ventana al redimensionar
+    window.addEventListener('resize', () => {
+        if (btnNo.style.position === 'absolute') {
+            moveNoButton();
         }
     });
 });
